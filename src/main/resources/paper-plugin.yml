@@ -1,0 +1,16 @@
+name: RealLegacyCombat
+version: '${version}'
+main: com.ericlmao.combat.CombatPlugin
+api-version: '1.21'
+authors: ["ericlmao"]
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: AFTER
+      required: false
+    packetevents:
+      load: BEFORE
+      required: true
+    WorldGuard:
+      load: BEFORE
+      required: false

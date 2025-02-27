@@ -1,0 +1,140 @@
+package com.ericlmao.combat;
+
+import com.ericlmao.combat.command.CommandGiveBlockHittingSword;
+import com.ericlmao.combat.config.Config;
+import com.ericlmao.combat.flag.FlagHandler;
+import com.ericlmao.combat.listener.AttackListener;
+import com.ericlmao.combat.listener.packet.BridgingPacketListener;
+import com.ericlmao.combat.listener.packet.EffectPacketListener;
+import com.ericlmao.combat.listener.packet.SoundPacketListener;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.EventManager;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import de.exlll.configlib.NameFormatters;
+import games.negative.alumina.AluminaPlugin;
+import games.negative.alumina.config.Configuration;
+import games.negative.alumina.util.PluginUtil;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import org.bukkit.NamespacedKey;
+import org.jetbrains.annotations.CheckReturnValue;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
+import java.util.Optional;
+
+public final class CombatPlugin extends AluminaPlugin {
+
+    private static CombatPlugin instance;
+
+    public static NamespacedKey LEGACY_COMBAT_SPEED;
+    public static NamespacedKey LEGACY_WEAPON;
+
+    private Configuration<Config> configuration;
+
+    private FlagHandler handler = null;
+
+    @Override
+    public void load() {
+        instance = this;
+
+        LEGACY_WEAPON = new NamespacedKey(this, "legacy_weapon");
+        LEGACY_COMBAT_SPEED = new NamespacedKey(this, "legacy_combat_speed");
+
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
+        //On Bukkit, calling this here is essential, hence the name "load"
+        PacketEvents.getAPI().load();
+
+        EventManager events = PacketEvents.getAPI().getEventManager();
+        events.registerListener(new SoundPacketListener(), PacketListenerPriority.NORMAL);
+        events.registerListener(new EffectPacketListener(), PacketListenerPriority.NORMAL);
+        events.registerListener(new BridgingPacketListener(), PacketListenerPriority.NORMAL);
+
+        if (PluginUtil.hasPlugin("WorldGuard")) handler = new FlagHandler();
+    }
+
+    @Override
+    public void enable() {
+        PacketEvents.getAPI().init();
+
+        reload();
+
+        registerCommand(new CommandGiveBlockHittingSword());
+        registerListener(new AttackListener());
+    }
+
+    public void reload() {
+        initConfig();
+    }
+
+    /**
+     * Initializes the configuration for the plugin.
+     * This method sets up the YamlConfigurationStore and updates the configuration from the "main.yml" file.
+     * If the store is not null, it creates a new YamlConfigurationStore with the specified properties.
+     * The configuration variable is then updated from the file using the store.
+     */
+    public void initConfig() {
+        File file = new File(getDataFolder(), "main.yml");
+
+        if (configuration != null) {
+            configuration.reload();
+            return;
+        }
+
+        configuration = Configuration.config(file, Config.class, builder -> {
+            builder.setNameFormatter(NameFormatters.LOWER_KEBAB_CASE);
+            builder.inputNulls(true);
+            builder.outputNulls(true);
+
+            builder.header("""
+                    --------------------------------------------------------
+                    Configuration
+                    \s
+                    Useful Resources:
+                    - MiniMessage: https://docs.advntr.dev/minimessage/
+                    - MiniMessage Web UI: https://webui.advntr.dev/
+                    --------------------------------------------------------
+                    """);
+
+            builder.footer("""
+                    Authors: ericlmao
+                    """);
+
+            return builder;
+        });
+    }
+
+    public void saveConfiguration() {
+        configuration.save();
+    }
+
+    @Override
+    public void disable() {
+        PacketEvents.getAPI().terminate();
+    }
+
+    @NotNull
+    public Config getConfiguration() {
+        return configuration.get();
+    }
+
+    @CheckReturnValue
+    public Optional<FlagHandler> getFlagHandler() {
+        return Optional.ofNullable(handler);
+    }
+
+    @NotNull
+    public static CombatPlugin instance() {
+        return instance;
+    }
+
+    @NotNull
+    public static Config config() {
+        return instance().getConfiguration();
+    }
+
+    @CheckReturnValue
+    public static Optional<FlagHandler> flagHandler() {
+        return instance().getFlagHandler();
+    }
+
+}
