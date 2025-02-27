@@ -1,9 +1,10 @@
-package com.ericlmao.combat.util;
+package games.negative.lce.util;
 
-import com.ericlmao.combat.CombatPlugin;
+import games.negative.lce.CombatPlugin;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.experimental.UtilityClass;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +23,14 @@ public class CombatCheck {
 
     public boolean checkCombat(@NotNull Player player) {
         return (fetchWorld(player) != null || WGUtil.testCombatFlag(player));
+    }
+
+    public boolean checkCombat(Location location) {
+        World world = location.getWorld();
+        if (world == null) return false;
+
+        boolean match = CombatPlugin.config().combatWorlds().stream().anyMatch(world1 -> world1.getName().equalsIgnoreCase(world.getName()));
+        return match || WGUtil.testCombatFlag(location);
     }
 
     @Nullable

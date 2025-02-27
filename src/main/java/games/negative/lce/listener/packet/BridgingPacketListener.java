@@ -1,4 +1,4 @@
-package com.ericlmao.combat.listener.packet;
+package games.negative.lce.listener.packet;
 
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;

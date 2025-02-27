@@ -1,4 +1,4 @@
-package com.ericlmao.combat.flag;
+package games.negative.lce.flag;
 
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.flags.Flag;

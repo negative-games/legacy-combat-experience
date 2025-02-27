@@ -3,8 +3,8 @@ plugins {
     id "io.github.goooler.shadow" version "8.1.7"
 }
 
-def id = "Combat"
-def group = 'com.ericlmao.combat'
+def id = "LCE"
+def group = 'games.negative.lce'
 def version = '1.0-SNAPSHOT'
 
 repositories {
@@ -39,7 +39,7 @@ dependencies {
     compileOnly("com.github.retrooper:packetevents-spigot:2.7.0")
 
     // ConfigLib
-    implementation("de.exlll:configlib-yaml:4.5.0")
+    compileOnly("de.exlll:configlib-yaml:4.5.0")
 
     // PlaceholderAPI
     compileOnly("me.clip:placeholderapi:2.11.6")
@@ -91,5 +91,5 @@ shadowJar {
     archiveVersion.set("")
 
     relocate "games.negative.alumina", "${group}.libs.alumina"
-    relocate "de.exlll.configlib", "${group}.libs.config"
+    //relocate "de.exlll.configlib", "${group}.libs.config"
 }

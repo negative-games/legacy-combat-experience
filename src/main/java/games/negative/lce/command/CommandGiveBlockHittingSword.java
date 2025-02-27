@@ -1,6 +1,6 @@
-package com.ericlmao.combat.command;
+package games.negative.lce.command;
 
-import com.ericlmao.combat.CombatPlugin;
+import games.negative.lce.CombatPlugin;
 import games.negative.alumina.command.Command;
 import games.negative.alumina.command.CommandContext;
 import games.negative.alumina.command.builder.CommandBuilder;

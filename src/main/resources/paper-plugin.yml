@@ -1,6 +1,7 @@
-name: RealLegacyCombat
+name: LCE
 version: '${version}'
-main: com.ericlmao.combat.CombatPlugin
+main: games.negative.lce.CombatPlugin
+loader: games.negative.lce.loader.CombatPluginLoader
 api-version: '1.21'
 authors: ["ericlmao"]
 dependencies:

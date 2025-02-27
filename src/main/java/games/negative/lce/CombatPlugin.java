@@ -1,12 +1,5 @@
-package com.ericlmao.combat;
+package games.negative.lce;
 
-import com.ericlmao.combat.command.CommandGiveBlockHittingSword;
-import com.ericlmao.combat.config.Config;
-import com.ericlmao.combat.flag.FlagHandler;
-import com.ericlmao.combat.listener.AttackListener;
-import com.ericlmao.combat.listener.packet.BridgingPacketListener;
-import com.ericlmao.combat.listener.packet.EffectPacketListener;
-import com.ericlmao.combat.listener.packet.SoundPacketListener;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.EventManager;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -14,6 +7,14 @@ import de.exlll.configlib.NameFormatters;
 import games.negative.alumina.AluminaPlugin;
 import games.negative.alumina.config.Configuration;
 import games.negative.alumina.util.PluginUtil;
+import games.negative.lce.command.CommandGiveBlockHittingSword;
+import games.negative.lce.command.CommandLCE;
+import games.negative.lce.config.Config;
+import games.negative.lce.flag.FlagHandler;
+import games.negative.lce.listener.LegacyPhysicsListener;
+import games.negative.lce.listener.packet.BridgingPacketListener;
+import games.negative.lce.listener.packet.EffectPacketListener;
+import games.negative.lce.listener.packet.SoundPacketListener;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -50,6 +51,7 @@ public final class CombatPlugin extends AluminaPlugin {
         events.registerListener(new BridgingPacketListener(), PacketListenerPriority.NORMAL);
 
         if (PluginUtil.hasPlugin("WorldGuard")) handler = new FlagHandler();
+
     }
 
     @Override
@@ -59,7 +61,8 @@ public final class CombatPlugin extends AluminaPlugin {
         reload();
 
         registerCommand(new CommandGiveBlockHittingSword());
-        registerListener(new AttackListener());
+        registerCommand(new CommandLCE());
+        registerListener(new LegacyPhysicsListener());
     }
 
     public void reload() {

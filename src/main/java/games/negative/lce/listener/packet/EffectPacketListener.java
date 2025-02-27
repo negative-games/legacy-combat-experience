@@ -1,6 +1,6 @@
-package com.ericlmao.combat.listener.packet;
+package games.negative.lce.listener.packet;
 
-import com.ericlmao.combat.util.CombatCheck;
+import games.negative.lce.util.CombatCheck;
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;

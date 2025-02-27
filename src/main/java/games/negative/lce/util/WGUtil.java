@@ -1,7 +1,7 @@
-package com.ericlmao.combat.util;
+package games.negative.lce.util;
 
-import com.ericlmao.combat.CombatPlugin;
-import com.ericlmao.combat.flag.FlagHandler;
+import games.negative.lce.CombatPlugin;
+import games.negative.lce.flag.FlagHandler;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldguard.LocalPlayer;
@@ -31,6 +31,18 @@ public class WGUtil {
 
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         return container.createQuery().testState(location, localPlayer, flag);
+    }
+
+    public boolean testCombatFlag(org.bukkit.Location location) {
+        Location loc = BukkitAdapter.adapt(location);
+
+        FlagHandler handler = CombatPlugin.flagHandler().orElseThrow();
+
+        StateFlag flag = handler.flag().orElse(null);
+        if (flag == null) return false;
+
+        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        return container.createQuery().testState(loc, null, flag);
     }
 
 }

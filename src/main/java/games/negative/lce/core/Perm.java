@@ -1,4 +1,4 @@
-package com.ericlmao.combat.core;
+package games.negative.lce.core;
 
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
