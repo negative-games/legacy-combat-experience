@@ -100,6 +100,13 @@ public class Config {
                 "minecraft:entity.fishing_bobber.retrieve"
         );
 
+        @Comment({
+                "",
+                "The speed of the player when bridging.",
+                "Specifically Shift + Backward.",
+        })
+        private float bridgingSpeed = 0.225f;
+
         public boolean isRemappedSound(Sound sound) {
             return soundRemap.containsKey(sound.getSoundId().toString());
         }
