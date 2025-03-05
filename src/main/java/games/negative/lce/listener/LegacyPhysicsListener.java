@@ -1,16 +1,20 @@
 package games.negative.lce.listener;
 
+import games.negative.alumina.util.Tasks;
 import games.negative.lce.CombatPlugin;
 import games.negative.lce.config.Config;
 import games.negative.lce.struct.SpeedVector;
 import games.negative.lce.util.CombatCheck;
 import io.papermc.paper.event.entity.EntityKnockbackEvent;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import java.util.Objects;
@@ -24,20 +28,39 @@ public class LegacyPhysicsListener implements Listener {
     /*
      * Adjust the velocity of arrows to be more like 1.8
      * Credit to https://github.com/Heklo1/StraightArrows/
-     * for solving this issue, I did not even know EntityShootBowEvent existed
+     * for solving this issue; I did not even know EntityShootBowEvent existed
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onArrowShoot(EntityShootBowEvent event) {
-        if (!(event.getEntity() instanceof Player player) || event.isCancelled() || !CombatCheck.checkCombat(event.getEntity().getLocation())) return;
+        if (!(event.getEntity() instanceof Player player)
+                || event.isCancelled()
+                || !CombatCheck.checkCombat(event.getEntity().getLocation())
+                || !(event.getProjectile() instanceof Arrow arrow)
+                || !(event.getBow() != null && event.getBow().getType().equals(Material.BOW))) return;
 
-        Entity projectile = event.getProjectile();
+        boolean isBoosting = adjustments().isEnableBowBoost() && event.getForce() <= adjustments().getBowBoostThreshold();
+        double speed = arrow.getVelocity().length();
 
-        double speed = projectile.getVelocity().length();
         Vector direction = player.getLocation().getDirection();
 
-        Vector velocity = direction.multiply(speed);
+        Vector velocity = direction.multiply(isBoosting ? speed / 2 : speed);
 
-        projectile.setVelocity(velocity);
+        arrow.setVelocity(velocity);
+
+        // Only run the task if the player is bow boosting
+        if (!isBoosting) return;
+
+        Tasks.run(new ArrowTask(arrow));
+    }
+
+    @RequiredArgsConstructor
+    private static class ArrowTask extends BukkitRunnable {
+        private final Arrow arrow;
+
+        @Override
+        public void run() {
+            arrow.setHasLeftShooter(true);
+        }
     }
 
     /*
@@ -65,14 +88,18 @@ public class LegacyPhysicsListener implements Listener {
         * This is also known as "bow boosting"
      */
 
+
     /**
      * Credit to https://github.com/Heklo1/StraightArrows/
      * for the original "bow boosting" simulation code
      * but modified to use EntityKnockbackEvent instead of PlayerVelocityEvent
      */
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onSelfProjectileHit(EntityKnockbackEvent event) {
-        if (event.isCancelled() || !(event.getEntity() instanceof Player player) || !CombatCheck.checkCombat(player))
+    public void onSelfProjectileKnockback(EntityKnockbackEvent event) {
+        if (event.isCancelled()
+                || !(event.getEntity() instanceof Player player)
+                || !CombatCheck.checkCombat(player)
+                || !adjustments().isEnableBowBoost())
             return;
 
         Vector initial = event.getKnockback();

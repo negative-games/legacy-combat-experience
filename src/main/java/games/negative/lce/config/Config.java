@@ -110,19 +110,26 @@ public class Config {
 
         @Comment({
                 "",
+                "The threshold for bow boosting. If the \"force\" of the arrow is less than this,",
+                "the player will \"bow boost\" and different physics will be applied."
+        })
+        private float bowBoostThreshold = 0.4f;
+
+        @Comment({
+                "",
                 "The speed of the bow boost.",
                 "This is the speed at which the player is boosted when bow boosting."
         })
         private SpeedVector bowBoostSpeed = new SpeedVector(1, 1);
 
         @Comment({"", "The velocity of the fishing rod when thrown."})
-        private Vector fishingRodVelocity = new Vector(0, 0, 0);
+        private Vector fishingRodVelocity = new Vector(1, 1, 1);
 
         @Comment({
                 "",
                 "A list of sounds that should be remapped to another sound.",
         })
-        private Map<NamespacedKey, SoundRemap> soundRemap = ConfigDefaults.defaultSoundRemap();
+        private Map<String, SoundRemap> soundRemap = ConfigDefaults.defaultSoundRemap();
 
         @Comment({
                 "",
@@ -146,14 +153,14 @@ public class Config {
 
         public boolean isRemappedSound(Sound sound) {
             NamespacedKey key = getBukkitSoundKey(sound);
-            return soundRemap.containsKey(key);
+            return soundRemap.containsKey(key.toString());
         }
 
         public SoundRemap getRemappedSound(Sound sound) {
             NamespacedKey key = getBukkitSoundKey(sound);
-            if (!soundRemap.containsKey(key)) return null;
+            if (!soundRemap.containsKey(key.toString())) return null;
 
-            return soundRemap.get(key);
+            return soundRemap.get(key.toString());
         }
 
         public boolean isKnockbackProjectile(EntityType type) {

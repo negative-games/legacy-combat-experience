@@ -12,6 +12,7 @@ import org.bukkit.Sound;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @UtilityClass
 public class ConfigDefaults {
@@ -31,12 +32,12 @@ public class ConfigDefaults {
         return list;
     }
 
-    public Map<NamespacedKey, SoundRemap> defaultSoundRemap() {
-        Map<NamespacedKey, SoundRemap> map = Maps.newHashMap();
+    public Map<String, SoundRemap> defaultSoundRemap() {
+        Map<String, SoundRemap> map = Maps.newHashMap();
 
         Registry<Sound> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.SOUND_EVENT);
 
-        map.put(registry.getKey(Sound.ENTITY_FISHING_BOBBER_THROW), new SoundRemap(
+        map.put(Objects.requireNonNull(registry.getKey(Sound.ENTITY_FISHING_BOBBER_THROW)).toString(), new SoundRemap(
                 registry.getKey(Sound.ENTITY_EGG_THROW),
                 1f,
                 0.5f
