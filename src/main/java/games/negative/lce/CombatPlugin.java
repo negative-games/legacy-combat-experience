@@ -10,6 +10,7 @@ import games.negative.alumina.util.PluginUtil;
 import games.negative.lce.command.CommandGiveBlockHittingSword;
 import games.negative.lce.command.CommandLCE;
 import games.negative.lce.config.Config;
+import games.negative.lce.config.serializer.KeySerializer;
 import games.negative.lce.flag.FlagHandler;
 import games.negative.lce.listener.LegacyPhysicsListener;
 import games.negative.lce.listener.packet.BridgingPacketListener;
@@ -42,7 +43,6 @@ public final class CombatPlugin extends AluminaPlugin {
         LEGACY_COMBAT_SPEED = new NamespacedKey(this, "legacy_combat_speed");
 
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
-        //On Bukkit, calling this here is essential, hence the name "load"
         PacketEvents.getAPI().load();
 
         EventManager events = PacketEvents.getAPI().getEventManager();
@@ -87,6 +87,8 @@ public final class CombatPlugin extends AluminaPlugin {
             builder.setNameFormatter(NameFormatters.LOWER_KEBAB_CASE);
             builder.inputNulls(true);
             builder.outputNulls(true);
+
+            builder.addSerializer(NamespacedKey.class, new KeySerializer());
 
             builder.header("""
                     --------------------------------------------------------

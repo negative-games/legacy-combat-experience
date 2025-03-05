@@ -3,12 +3,16 @@ package games.negative.lce.config;
 import com.github.retrooper.packetevents.protocol.sound.Sound;
 import de.exlll.configlib.Comment;
 import de.exlll.configlib.Configuration;
+import games.negative.lce.config.defaults.ConfigDefaults;
 import games.negative.lce.struct.SoundRemap;
+import games.negative.lce.struct.SpeedVector;
 import games.negative.lce.struct.Vector;
 import io.papermc.paper.event.entity.EntityKnockbackEvent;
 import lombok.Getter;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
@@ -73,6 +77,44 @@ public class Config {
                 EntityKnockbackEvent.Cause.EXPLOSION, new Vector(1, 1, 1)
         );
 
+        @Comment({
+                "",
+                "A list of projectiles that should apply knockback.",
+                "This is useful for projectiles that normally don't apply knockback"
+        })
+        private List<NamespacedKey> knockbackProjectiles = List.of(
+                EntityType.SNOWBALL.getKey(),
+                EntityType.EGG.getKey(),
+                EntityType.ENDER_PEARL.getKey(),
+                EntityType.FISHING_BOBBER.getKey()
+        );
+
+        @Comment({
+                "",
+                "The damage dealt by knockback projectiles.",
+        })
+        private double knockbackProjectileDamage = 0.01;
+
+        @Comment({
+                "",
+                "The strength of the knockback applied by knockback projectiles.",
+        })
+        private double knockbackProjectileKnockbackStrength = 1;
+
+        @Comment({
+                "",
+                "Whether or not to enable bow boosting.",
+                "This is when you shoot an arrow and jump at the same time to get a boost."
+        })
+        private boolean enableBowBoost = false;
+
+        @Comment({
+                "",
+                "The speed of the bow boost.",
+                "This is the speed at which the player is boosted when bow boosting."
+        })
+        private SpeedVector bowBoostSpeed = new SpeedVector(1, 1);
+
         @Comment({"", "The velocity of the fishing rod when thrown."})
         private Vector fishingRodVelocity = new Vector(0, 0, 0);
 
@@ -80,25 +122,13 @@ public class Config {
                 "",
                 "A list of sounds that should be remapped to another sound.",
         })
-        private Map<String, SoundRemap> soundRemap = Map.of(
-            "minecraft:entity.fishing_bobber.throw", new SoundRemap(
-                "minecraft:entity.egg.throw", 1f, 0.5f
-                )
-        );
+        private Map<NamespacedKey, SoundRemap> soundRemap = ConfigDefaults.defaultSoundRemap();
 
         @Comment({
                 "",
                 "A list of sounds that should be blocked.",
         })
-        private List<String> disabledSounds = List.of(
-                "minecraft:entity.player.attack.nodamage",
-                "minecraft:entity.player.attack.sweep",
-                "minecraft:entity.player.attack.weak",
-                "minecraft:entity.player.attack.crit",
-                "minecraft:entity.player.attack.strong",
-                "minecraft:entity.player.attack.knockback",
-                "minecraft:entity.fishing_bobber.retrieve"
-        );
+        private List<NamespacedKey> disabledSounds = ConfigDefaults.defaultDisabledSounds();
 
         @Comment({
                 "",
@@ -107,14 +137,27 @@ public class Config {
         })
         private float bridgingSpeed = 0.225f;
 
+        public NamespacedKey getBukkitSoundKey(Sound sound) {
+            String id = sound.getSoundId().toString();
+            String[] split = id.split(":");
+
+            return new NamespacedKey(split[0], split[1]);
+        }
+
         public boolean isRemappedSound(Sound sound) {
-            return soundRemap.containsKey(sound.getSoundId().toString());
+            NamespacedKey key = getBukkitSoundKey(sound);
+            return soundRemap.containsKey(key);
         }
 
         public SoundRemap getRemappedSound(Sound sound) {
-            if (!soundRemap.containsKey(sound.getSoundId().toString())) return null;
+            NamespacedKey key = getBukkitSoundKey(sound);
+            if (!soundRemap.containsKey(key)) return null;
 
-            return soundRemap.get(sound.getSoundId().toString());
+            return soundRemap.get(key);
+        }
+
+        public boolean isKnockbackProjectile(EntityType type) {
+            return knockbackProjectiles.contains(type.getKey());
         }
     }
 }
