@@ -59,6 +59,12 @@ public class LegacyPhysicsListener implements Listener {
         entity.knockback(adjustments().getKnockbackProjectileKnockbackStrength(), velocity.getX(), velocity.getZ());
     }
 
+
+    /*
+        * Adjust the velocity of self-shot arrows to be more like 1.8
+        * This is also known as "bow boosting"
+     */
+
     /**
      * Credit to https://github.com/Heklo1/StraightArrows/
      * for the original "bow boosting" simulation code
