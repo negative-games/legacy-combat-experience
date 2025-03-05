@@ -21,6 +21,8 @@ repositories {
 
     maven { url 'https://jitpack.io' }
 
+    maven { url 'https://repo.negative.games/repository/maven-snapshots/' }
+
     maven {
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
