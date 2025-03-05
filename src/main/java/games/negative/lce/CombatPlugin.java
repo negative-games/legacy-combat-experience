@@ -92,11 +92,13 @@ public final class CombatPlugin extends AluminaPlugin {
 
             builder.header("""
                     --------------------------------------------------------
-                    Configuration
+                    Legacy-Combat-Experience Configuration
                     \s
                     Useful Resources:
-                    - MiniMessage: https://docs.advntr.dev/minimessage/
-                    - MiniMessage Web UI: https://webui.advntr.dev/
+                    - Discord: https://discord.negative.games/
+                    - GitHub: https://github.com/negative-games/legacy-combat-experience
+                    - Issue Tracker: https://github.com/negative-games/legacy-combat-experience/issues
+                    - Modrinth: https://modrinth.com/project/lce
                     --------------------------------------------------------
                     """);
 
