@@ -24,6 +24,8 @@ public class CommandLCE extends Command {
                 .smartTabComplete(true)
         );
 
+        addSubCommand(new CmdKnockback());
+
         injectSubCommand(CommandBuilder.builder().name("reload"), context -> {
             CommandSender sender = context.sender();
 

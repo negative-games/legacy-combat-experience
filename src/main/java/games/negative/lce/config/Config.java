@@ -166,5 +166,9 @@ public class Config {
         public boolean isKnockbackProjectile(EntityType type) {
             return knockbackProjectiles.contains(type.getKey());
         }
+
+        public void setKnockbackProfile(EntityKnockbackEvent.Cause cause, Vector vector) {
+            knockback.put(cause, vector);
+        }
     }
 }
