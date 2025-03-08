@@ -5,7 +5,7 @@ plugins {
 
 def id = "LCE"
 def group = 'games.negative.lce'
-def version = '1.0-SNAPSHOT'
+def version = '0.1.0'
 
 repositories {
     mavenLocal()
@@ -88,7 +88,7 @@ tasks {
 }
 
 shadowJar {
-    archiveBaseName.set("${id}")
+    archiveBaseName.set("${id}-${version}")
     archiveClassifier.set("")
     archiveVersion.set("")
 
