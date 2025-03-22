@@ -1,8 +1,10 @@
 package games.negative.lce.listener;
 
+import games.negative.alumina.logger.Logs;
 import games.negative.alumina.util.Tasks;
 import games.negative.lce.CombatPlugin;
-import games.negative.lce.config.Config;
+import games.negative.lce.config.KnockbackConfig;
+import games.negative.lce.config.PhysicsConfig;
 import games.negative.lce.struct.SpeedVector;
 import games.negative.lce.util.CombatCheck;
 import io.papermc.paper.event.entity.EntityKnockbackEvent;
@@ -21,8 +23,24 @@ import java.util.Objects;
 
 public class LegacyPhysicsListener implements Listener {
 
-    public Config.Adjustments adjustments() {
-        return CombatPlugin.config().adjustments();
+    public KnockbackConfig knockback() {
+        return CombatPlugin.configs().knockback();
+    }
+
+    public PhysicsConfig physics() {
+        return CombatPlugin.configs().physics();
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onDamageWhileBlocking(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()
+                || !(event.getEntity() instanceof Player player)
+                || !CombatCheck.checkCombat(player)
+                || !CombatCheck.isBlockingWithSword(player)) return;
+
+        double reduction = physics().getDamageReductionWhileBlockingWithSword() / 100D;
+
+        event.setDamage(event.getDamage() / reduction);
     }
 
     /*
@@ -38,7 +56,7 @@ public class LegacyPhysicsListener implements Listener {
                 || !(event.getProjectile() instanceof Arrow arrow)
                 || !(event.getBow() != null && event.getBow().getType().equals(Material.BOW))) return;
 
-        boolean isBoosting = adjustments().isEnableBowBoost() && event.getForce() <= adjustments().getBowBoostThreshold();
+        boolean isBoosting = knockback().isEnableBowBoost() && event.getForce() <= knockback().getBowBoostThreshold();
         double speed = arrow.getVelocity().length();
 
         Vector direction = player.getLocation().getDirection();
@@ -73,13 +91,13 @@ public class LegacyPhysicsListener implements Listener {
         if (event.isCancelled() || !(event.getHitEntity() instanceof LivingEntity entity) || !CombatCheck.checkCombat(entity.getLocation())) return;
 
         Projectile projectile = event.getEntity();
-        if (!adjustments().isKnockbackProjectile(projectile.getType())) return;
+        if (!knockback().isKnockbackProjectile(projectile.getType())) return;
 
-        entity.damage(adjustments().getKnockbackProjectileDamage(), projectile);
+        entity.damage(knockback().getKnockbackProjectileDamage(), projectile);
 
         Vector velocity = projectile.getVelocity().multiply(-1);
 
-        entity.knockback(adjustments().getKnockbackProjectileKnockbackStrength(), velocity.getX(), velocity.getZ());
+        entity.knockback(knockback().getKnockbackProjectileKnockbackStrength(), velocity.getX(), velocity.getZ());
     }
 
 
@@ -99,7 +117,7 @@ public class LegacyPhysicsListener implements Listener {
         if (event.isCancelled()
                 || !(event.getEntity() instanceof Player player)
                 || !CombatCheck.checkCombat(player)
-                || !adjustments().isEnableBowBoost())
+                || !knockback().isEnableBowBoost())
             return;
 
         Vector initial = event.getKnockback();
@@ -111,7 +129,7 @@ public class LegacyPhysicsListener implements Listener {
                 || !Objects.equals(player.getUniqueId(), shooter.getUniqueId()))
             return;
 
-        SpeedVector speed = adjustments().getBowBoostSpeed();
+        SpeedVector speed = knockback().getBowBoostSpeed();
         double horizontal = speed.horizontal();
         double vertical = speed.vertical();
 
@@ -136,7 +154,7 @@ public class LegacyPhysicsListener implements Listener {
         if (!(entity instanceof FishHook hook)) return;
 
         Vector velocity = hook.getVelocity();
-        Vector adjusted = velocity.multiply(adjustments().getFishingRodVelocity().toBukkitVector());
+        Vector adjusted = velocity.multiply(physics().getFishingRodVelocity().toBukkitVector());
 
         hook.setVelocity(adjusted);
     }
@@ -158,11 +176,11 @@ public class LegacyPhysicsListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onKnockback(EntityKnockbackEvent event) {
-        if (event.isCancelled() || !adjustments().isUseCustomKnockback()) return;
+        if (event.isCancelled() || !knockback().isEnabled()) return;
 
         if (!(event.getEntity() instanceof LivingEntity entity) || !CombatCheck.checkCombat(entity.getLocation())) return;
 
-        games.negative.lce.struct.Vector vector = adjustments().getKnockback().get(event.getCause());
+        games.negative.lce.struct.Vector vector = knockback().getKnockback().get(event.getCause());
         if (vector == null) return;
 
         Vector knockback = event.getKnockback().multiply(vector.toBukkitVector());

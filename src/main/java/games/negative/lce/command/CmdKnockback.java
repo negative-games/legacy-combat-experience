@@ -7,7 +7,7 @@ import games.negative.alumina.command.TabContext;
 import games.negative.alumina.command.builder.CommandBuilder;
 import games.negative.alumina.util.NumberUtil;
 import games.negative.lce.CombatPlugin;
-import games.negative.lce.config.Config;
+import games.negative.lce.config.KnockbackConfig;
 import games.negative.lce.message.Messages;
 import games.negative.lce.struct.Vector;
 import io.papermc.paper.event.entity.EntityKnockbackEvent;
@@ -31,7 +31,7 @@ public class CmdKnockback extends Command {
     public void execute(@NotNull CommandContext context) {
         Player player = context.player().orElseThrow();
 
-        if (!adjustments().isUseCustomKnockback()) {
+        if (!knockback().isEnabled()) {
             Messages.KNOCKBACK_DISABLED.create().send(player);
             return;
         }
@@ -62,7 +62,7 @@ public class CmdKnockback extends Command {
         }
 
         Vector updated = new Vector(x, y, z);
-        adjustments().setKnockbackProfile(EntityKnockbackEvent.Cause.ENTITY_ATTACK, updated);
+        knockback().setKnockbackProfile(EntityKnockbackEvent.Cause.ENTITY_ATTACK, updated);
         save();
 
         Messages.KNOCKBACK_SUCCESS.create()
@@ -88,23 +88,23 @@ public class CmdKnockback extends Command {
     }
 
     private Vector knockbackValues() {
-        Vector vector = adjustments().getKnockback().getOrDefault(EntityKnockbackEvent.Cause.ENTITY_ATTACK, null);
+        Vector vector = knockback().getKnockback().getOrDefault(EntityKnockbackEvent.Cause.ENTITY_ATTACK, null);
         if (vector == null) {
-            adjustments().setKnockbackProfile(EntityKnockbackEvent.Cause.ENTITY_ATTACK, new Vector(1, 1, 1));
+            knockback().setKnockbackProfile(EntityKnockbackEvent.Cause.ENTITY_ATTACK, new Vector(1, 1, 1));
             save();
 
-            vector = adjustments().getKnockback().get(EntityKnockbackEvent.Cause.ENTITY_ATTACK);
+            vector = knockback().getKnockback().get(EntityKnockbackEvent.Cause.ENTITY_ATTACK);
             Preconditions.checkNotNull(vector, "Knockback vector for 'ENTITY_ATTACK' should not be null");
         }
 
         return vector;
     }
 
-    private Config.Adjustments adjustments() {
-        return CombatPlugin.config().adjustments();
+    private KnockbackConfig knockback() {
+        return CombatPlugin.configs().knockback();
     }
 
     private void save() {
-        CombatPlugin.instance().saveConfiguration();
+        CombatPlugin.configs().save();
     }
 }

@@ -1,9 +1,9 @@
 package games.negative.lce.command;
 
-import games.negative.lce.CombatPlugin;
 import games.negative.alumina.command.Command;
 import games.negative.alumina.command.CommandContext;
 import games.negative.alumina.command.builder.CommandBuilder;
+import games.negative.lce.CombatPlugin;
 import io.papermc.paper.datacomponent.DataComponentBuilder;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Consumable;
