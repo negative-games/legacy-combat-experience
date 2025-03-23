@@ -32,7 +32,6 @@ public class ParticleConfig {
         if (existing != null) return existing;
 
         String id = particle.getName().toString();
-        Logs.info("Converting particle type " + id + " to NamespacedKey");
         String[] split = id.split(":");
 
         NamespacedKey key = new NamespacedKey(split[0], split[1]);
