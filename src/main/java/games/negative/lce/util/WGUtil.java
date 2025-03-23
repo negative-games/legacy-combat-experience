@@ -1,7 +1,5 @@
 package games.negative.lce.util;
 
-import games.negative.lce.CombatPlugin;
-import games.negative.lce.flag.FlagHandler;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.util.Location;
 import com.sk89q.worldguard.LocalPlayer;
@@ -10,6 +8,8 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import games.negative.alumina.util.PluginUtil;
+import games.negative.lce.CombatPlugin;
+import games.negative.lce.flag.FlagHandler;
 import lombok.experimental.UtilityClass;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +34,8 @@ public class WGUtil {
     }
 
     public boolean testCombatFlag(org.bukkit.Location location) {
+        if (!PluginUtil.hasPlugin("WorldGuard")) return false;
+
         Location loc = BukkitAdapter.adapt(location);
 
         FlagHandler handler = CombatPlugin.flagHandler().orElseThrow();

@@ -3,25 +3,22 @@ package games.negative.lce;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.EventManager;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import de.exlll.configlib.NameFormatters;
 import games.negative.alumina.AluminaPlugin;
-import games.negative.alumina.config.Configuration;
 import games.negative.alumina.util.PluginUtil;
 import games.negative.lce.command.CommandGiveBlockHittingSword;
 import games.negative.lce.command.CommandLCE;
-import games.negative.lce.config.Config;
-import games.negative.lce.config.serializer.KeySerializer;
+import games.negative.lce.config.ConfigManager;
 import games.negative.lce.flag.FlagHandler;
 import games.negative.lce.listener.LegacyPhysicsListener;
+import games.negative.lce.listener.packet.BlockingPacketListener;
 import games.negative.lce.listener.packet.BridgingPacketListener;
-import games.negative.lce.listener.packet.EffectPacketListener;
+import games.negative.lce.listener.packet.ParticlePacketListener;
 import games.negative.lce.listener.packet.SoundPacketListener;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.Optional;
 
 public final class CombatPlugin extends AluminaPlugin {
@@ -31,7 +28,7 @@ public final class CombatPlugin extends AluminaPlugin {
     public static NamespacedKey LEGACY_COMBAT_SPEED;
     public static NamespacedKey LEGACY_WEAPON;
 
-    private Configuration<Config> configuration;
+    private ConfigManager configurations;
 
     private FlagHandler handler = null;
 
@@ -47,8 +44,9 @@ public final class CombatPlugin extends AluminaPlugin {
 
         EventManager events = PacketEvents.getAPI().getEventManager();
         events.registerListener(new SoundPacketListener(), PacketListenerPriority.NORMAL);
-        events.registerListener(new EffectPacketListener(), PacketListenerPriority.NORMAL);
+        events.registerListener(new ParticlePacketListener(), PacketListenerPriority.NORMAL);
         events.registerListener(new BridgingPacketListener(), PacketListenerPriority.NORMAL);
+        events.registerListener(new BlockingPacketListener(), PacketListenerPriority.NORMAL);
 
         if (PluginUtil.hasPlugin("WorldGuard")) handler = new FlagHandler();
 
@@ -58,7 +56,7 @@ public final class CombatPlugin extends AluminaPlugin {
     public void enable() {
         PacketEvents.getAPI().init();
 
-        reload();
+        configurations = new ConfigManager(this);
 
         registerCommand(new CommandGiveBlockHittingSword());
         registerCommand(new CommandLCE());
@@ -66,52 +64,7 @@ public final class CombatPlugin extends AluminaPlugin {
     }
 
     public void reload() {
-        initConfig();
-    }
-
-    /**
-     * Initializes the configuration for the plugin.
-     * This method sets up the YamlConfigurationStore and updates the configuration from the "main.yml" file.
-     * If the store is not null, it creates a new YamlConfigurationStore with the specified properties.
-     * The configuration variable is then updated from the file using the store.
-     */
-    public void initConfig() {
-        File file = new File(getDataFolder(), "main.yml");
-
-        if (configuration != null) {
-            configuration.reload();
-            return;
-        }
-
-        configuration = Configuration.config(file, Config.class, builder -> {
-            builder.setNameFormatter(NameFormatters.LOWER_KEBAB_CASE);
-            builder.inputNulls(true);
-            builder.outputNulls(true);
-
-            builder.addSerializer(NamespacedKey.class, new KeySerializer());
-
-            builder.header("""
-                    --------------------------------------------------------
-                    Legacy-Combat-Experience Configuration
-                    \s
-                    Useful Resources:
-                    - Discord: https://discord.negative.games/
-                    - GitHub: https://github.com/negative-games/legacy-combat-experience
-                    - Issue Tracker: https://github.com/negative-games/legacy-combat-experience/issues
-                    - Modrinth: https://modrinth.com/project/lce
-                    --------------------------------------------------------
-                    """);
-
-            builder.footer("""
-                    Authors: ericlmao
-                    """);
-
-            return builder;
-        });
-    }
-
-    public void saveConfiguration() {
-        configuration.save();
+        configurations.reload();
     }
 
     @Override
@@ -120,8 +73,8 @@ public final class CombatPlugin extends AluminaPlugin {
     }
 
     @NotNull
-    public Config getConfiguration() {
-        return configuration.get();
+    public ConfigManager getConfigurations() {
+        return configurations;
     }
 
     @CheckReturnValue
@@ -135,8 +88,8 @@ public final class CombatPlugin extends AluminaPlugin {
     }
 
     @NotNull
-    public static Config config() {
-        return instance().getConfiguration();
+    public static ConfigManager configs() {
+        return instance().getConfigurations();
     }
 
     @CheckReturnValue
