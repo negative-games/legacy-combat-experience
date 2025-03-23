@@ -31,6 +31,9 @@ public class LegacyPhysicsListener implements Listener {
         return CombatPlugin.configs().physics();
     }
 
+    /**
+     * Adjust the damage of an attack while the victim is blocking with a sword
+     */
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamageWhileBlocking(EntityDamageByEntityEvent event) {
         if (event.isCancelled()
@@ -38,8 +41,8 @@ public class LegacyPhysicsListener implements Listener {
                 || !CombatCheck.checkCombat(player)
                 || !CombatCheck.isBlockingWithSword(player)) return;
 
-        double reduction = physics().getDamageReductionWhileBlockingWithSword() / 100D;
-
+        double reduction = physics().getDamageReductionWhileBlockingWithSword();
+        
         event.setDamage(event.getDamage() / reduction);
     }
 
