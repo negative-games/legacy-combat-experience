@@ -1,6 +1,5 @@
 package games.negative.lce.listener;
 
-import games.negative.alumina.logger.Logs;
 import games.negative.alumina.util.Tasks;
 import games.negative.lce.CombatPlugin;
 import games.negative.lce.config.KnockbackConfig;
@@ -11,11 +10,22 @@ import io.papermc.paper.event.entity.EntityKnockbackEvent;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -32,6 +42,40 @@ public class LegacyPhysicsListener implements Listener {
     }
 
     /**
+     * Adjust the velocity of thrown potions to be more like 1.8
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPotionThrow(ProjectileLaunchEvent event) {
+        if (event.isCancelled()
+                || !CombatCheck.checkCombat(event.getLocation())
+                || !physics().isEnableLegacyPotionPhysics()
+                || !(event.getEntity() instanceof ThrownPotion potion)) return;
+
+        ProjectileSource shooter = potion.getShooter();
+        if (!(shooter instanceof Player player)) return;
+
+        double speed = potion.getVelocity().length();
+        Vector direction = player.getLocation().getDirection();
+
+        Vector velocity = direction.multiply(speed / physics().getLegacyPotionVelocityReduction());
+
+        potion.setVelocity(velocity);
+    }
+
+    /**
+     * Nerf health regeneration while in combat to be more like 1.8
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onHealthRegeneration(EntityRegainHealthEvent event) {
+        if (event.isCancelled()
+                || !(event.getEntity() instanceof Player player)
+                || !CombatCheck.checkCombat(player)
+                || event.getRegainReason() != EntityRegainHealthEvent.RegainReason.SATIATED) return;
+
+        event.setAmount(event.getAmount() / 2);
+    }
+
+    /**
      * Adjust the damage of an attack while the victim is blocking with a sword
      */
     @EventHandler(priority = EventPriority.HIGH)
@@ -42,7 +86,7 @@ public class LegacyPhysicsListener implements Listener {
                 || !CombatCheck.isBlockingWithSword(player)) return;
 
         double reduction = physics().getDamageReductionWhileBlockingWithSword();
-        
+
         event.setDamage(event.getDamage() / reduction);
     }
 
@@ -85,13 +129,14 @@ public class LegacyPhysicsListener implements Listener {
     }
 
     /*
-        * Adjust the velocity of "knockback" projectiles to be more like 1.8
-        * "knockback" projectiles are snowballs, eggs, etc.
+     * Adjust the velocity of "knockback" projectiles to be more like 1.8
+     * "knockback" projectiles are snowballs, eggs, etc.
      */
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onProjectileHit(ProjectileHitEvent event) {
-        if (event.isCancelled() || !(event.getHitEntity() instanceof LivingEntity entity) || !CombatCheck.checkCombat(entity.getLocation())) return;
+        if (event.isCancelled() || !(event.getHitEntity() instanceof LivingEntity entity) || !CombatCheck.checkCombat(entity.getLocation()))
+            return;
 
         Projectile projectile = event.getEntity();
         if (!knockback().isKnockbackProjectile(projectile.getType())) return;
@@ -105,8 +150,8 @@ public class LegacyPhysicsListener implements Listener {
 
 
     /*
-        * Adjust the velocity of self-shot arrows to be more like 1.8
-        * This is also known as "bow boosting"
+     * Adjust the velocity of self-shot arrows to be more like 1.8
+     * This is also known as "bow boosting"
      */
 
 
@@ -146,7 +191,7 @@ public class LegacyPhysicsListener implements Listener {
     }
 
     /*
-        * Adjust the velocity of fishing rods to be more like 1.8
+     * Adjust the velocity of fishing rods to be more like 1.8
      */
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -166,7 +211,8 @@ public class LegacyPhysicsListener implements Listener {
     public void onReel(PlayerFishEvent event) {
         if (event.isCancelled() || event.getState() != PlayerFishEvent.State.CAUGHT_ENTITY) return;
 
-        if (!(event.getCaught() instanceof LivingEntity victim) || !CombatCheck.checkCombat(victim.getLocation())) return;
+        if (!(event.getCaught() instanceof LivingEntity victim) || !CombatCheck.checkCombat(victim.getLocation()))
+            return;
 
         event.setCancelled(true);
 
@@ -175,18 +221,88 @@ public class LegacyPhysicsListener implements Listener {
     }
 
     /*
-        * Adjust general player knockback to be more like 1.8/customized
+     * Adjust general player knockback to be more like 1.8/customized
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onKnockback(EntityKnockbackEvent event) {
         if (event.isCancelled() || !knockback().isEnabled()) return;
 
-        if (!(event.getEntity() instanceof LivingEntity entity) || !CombatCheck.checkCombat(entity.getLocation())) return;
+        if (!(event.getEntity() instanceof LivingEntity entity) || !CombatCheck.checkCombat(entity.getLocation()))
+            return;
 
         games.negative.lce.struct.Vector vector = knockback().getKnockback().get(event.getCause());
         if (vector == null) return;
 
         Vector knockback = event.getKnockback().multiply(vector.toBukkitVector());
         event.setKnockback(knockback);
+    }
+
+    /*
+     * Disable the offhand slot
+     */
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onOffhandSwap(PlayerSwapHandItemsEvent event) {
+        if (event.isCancelled()
+                || !physics().isDisableOffhand()
+                || !CombatCheck.checkCombat(event.getPlayer())
+                || event.getOffHandItem().getType().isAir()) return;
+
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onOffhandInventoryClick(InventoryClickEvent event) {
+        if (event.isCancelled()
+                || !physics().isDisableOffhand()
+                || event.getInventory().getType() != InventoryType.CRAFTING
+                || !(event.getWhoClicked() instanceof Player player)
+                || !CombatCheck.checkCombat(player)) return;
+
+        if (event.getClick() != ClickType.SWAP_OFFHAND && event.getSlot() != 40) return;
+
+        event.setCancelled(true);
+        event.setResult(Event.Result.DENY);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onTeleportToRemoveOffhand(PlayerTeleportEvent event) {
+        if (event.isCancelled()
+                || !physics().isDisableOffhand()
+                || !CombatCheck.checkCombat(event.getTo())) return;
+
+        Player player = event.getPlayer();
+
+        PlayerInventory inventory = player.getInventory();
+
+        ItemStack item = inventory.getItemInOffHand();
+        if (item.getType().isAir()) return;
+
+        inventory.addItem(item).forEach((integer, itemStack) -> {
+            player.dropItem(EquipmentSlot.OFF_HAND);
+        });
+
+        inventory.setItemInOffHand(null);
+        player.updateInventory();
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onMoveToRemoveOffhand(PlayerMoveEvent event) {
+        if (event.isCancelled()
+                || !physics().isDisableOffhand()
+                || event.getPlayer().getInventory().getItemInOffHand().getType().isAir()
+                || !CombatCheck.checkCombat(event.getTo())) return;
+
+        Player player = event.getPlayer();
+        PlayerInventory inventory = player.getInventory();
+
+        ItemStack item = inventory.getItemInOffHand();
+
+        inventory.addItem(item).forEach((integer, itemStack) -> {
+            player.dropItem(EquipmentSlot.OFF_HAND);
+        });
+
+        inventory.setItemInOffHand(null);
+        player.updateInventory();
     }
 }
