@@ -45,4 +45,20 @@ public class PhysicsConfig {
             "for throwing splash potions"
     })
     private boolean enableLegacyPotionPhysics = false;
+
+    @Comment({
+            "",
+            "The amount to divide the velocity of a",
+            "thrown potion by to make it more like 1.8",
+            " ",
+            "Functionality:",
+            "velocity = direction * speed / 2 "
+    })
+    private double legacyPotionVelocityReduction = 2.0;
+
+    @Comment({
+            "",
+            "Whether or not to disable the offhand slot"
+    })
+    private boolean disableOffhand = true;
 }
