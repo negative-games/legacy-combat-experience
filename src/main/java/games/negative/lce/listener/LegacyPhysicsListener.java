@@ -19,7 +19,12 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -233,12 +238,13 @@ public class LegacyPhysicsListener implements Listener {
     }
 
     /*
-        * Disable the offhand slot
+     * Disable the offhand slot
      */
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onOffhandSwap(PlayerSwapHandItemsEvent event) {
         if (event.isCancelled()
+                || !physics().isDisableOffhand()
                 || !CombatCheck.checkCombat(event.getPlayer())
                 || event.getOffHandItem().getType().isAir()) return;
 
@@ -248,6 +254,7 @@ public class LegacyPhysicsListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onOffhandInventoryClick(InventoryClickEvent event) {
         if (event.isCancelled()
+                || !physics().isDisableOffhand()
                 || event.getInventory().getType() != InventoryType.CRAFTING
                 || !(event.getWhoClicked() instanceof Player player)
                 || !CombatCheck.checkCombat(player)) return;
@@ -256,5 +263,46 @@ public class LegacyPhysicsListener implements Listener {
 
         event.setCancelled(true);
         event.setResult(Event.Result.DENY);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onTeleportToRemoveOffhand(PlayerTeleportEvent event) {
+        if (event.isCancelled()
+                || !physics().isDisableOffhand()
+                || !CombatCheck.checkCombat(event.getTo())) return;
+
+        Player player = event.getPlayer();
+
+        PlayerInventory inventory = player.getInventory();
+
+        ItemStack item = inventory.getItemInOffHand();
+        if (item.getType().isAir()) return;
+
+        inventory.addItem(item).forEach((integer, itemStack) -> {
+            player.dropItem(EquipmentSlot.OFF_HAND);
+        });
+
+        inventory.setItemInOffHand(null);
+        player.updateInventory();
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onMoveToRemoveOffhand(PlayerMoveEvent event) {
+        if (event.isCancelled()
+                || !physics().isDisableOffhand()
+                || event.getPlayer().getInventory().getItemInOffHand().getType().isAir()
+                || !CombatCheck.checkCombat(event.getTo())) return;
+
+        Player player = event.getPlayer();
+        PlayerInventory inventory = player.getInventory();
+
+        ItemStack item = inventory.getItemInOffHand();
+
+        inventory.addItem(item).forEach((integer, itemStack) -> {
+            player.dropItem(EquipmentSlot.OFF_HAND);
+        });
+
+        inventory.setItemInOffHand(null);
+        player.updateInventory();
     }
 }
