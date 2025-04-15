@@ -1,6 +1,5 @@
 package games.negative.lce.listener;
 
-import games.negative.alumina.logger.Logs;
 import games.negative.alumina.util.Tasks;
 import games.negative.lce.CombatPlugin;
 import games.negative.lce.config.KnockbackConfig;
@@ -16,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
@@ -29,6 +29,40 @@ public class LegacyPhysicsListener implements Listener {
 
     public PhysicsConfig physics() {
         return CombatPlugin.configs().physics();
+    }
+
+    /**
+     * Adjust the velocity of thrown potions to be more like 1.8
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPotionThrow(ProjectileLaunchEvent event) {
+        if (event.isCancelled()
+                || !CombatCheck.checkCombat(event.getLocation())
+                || !physics().isEnableLegacyPotionPhysics()
+                || !(event.getEntity() instanceof ThrownPotion potion)) return;
+
+        ProjectileSource shooter = potion.getShooter();
+        if (!(shooter instanceof Player player)) return;
+
+        double speed = potion.getVelocity().length();
+        Vector direction = player.getLocation().getDirection();
+
+        Vector velocity = direction.multiply(speed / 2);
+
+        potion.setVelocity(velocity);
+    }
+
+    /**
+     * Nerf health regeneration while in combat to be more like 1.8
+     */
+    @EventHandler
+    public void onHealthRegeneration(EntityRegainHealthEvent event) {
+        if (event.isCancelled()
+        || !(event.getEntity() instanceof Player player)
+        || !CombatCheck.checkCombat(player)
+        || event.getRegainReason() != EntityRegainHealthEvent.RegainReason.SATIATED) return;
+
+        event.setAmount(event.getAmount() / 2);
     }
 
     /**

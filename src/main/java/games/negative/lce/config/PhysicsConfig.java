@@ -38,4 +38,11 @@ public class PhysicsConfig {
             "Specifically Shift + Backward.",
     })
     private float bridgingSpeed = 0.225f;
+
+    @Comment({
+            "",
+            "Whether or not to enable the legacy potion physics",
+            "for throwing splash potions"
+    })
+    private boolean enableLegacyPotionPhysics = false;
 }
