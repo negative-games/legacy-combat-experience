@@ -1,14 +1,18 @@
 package games.negative.lce.listener;
 
+import games.negative.alumina.logger.Logs;
 import games.negative.alumina.util.Tasks;
 import games.negative.lce.CombatPlugin;
 import games.negative.lce.config.KnockbackConfig;
 import games.negative.lce.config.PhysicsConfig;
+import games.negative.lce.core.Keys;
 import games.negative.lce.struct.SpeedVector;
 import games.negative.lce.util.CombatCheck;
 import io.papermc.paper.event.entity.EntityKnockbackEvent;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -25,6 +29,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -41,6 +47,9 @@ public class LegacyPhysicsListener implements Listener {
         return CombatPlugin.configs().physics();
     }
 
+    private static final double THROW_SPEED = 0.75;
+    private static final double UPWARD_BIAS = 0.25; // Slightly higher to reliably hit mid-level
+
     /**
      * Adjust the velocity of thrown potions to be more like 1.8
      */
@@ -49,17 +58,51 @@ public class LegacyPhysicsListener implements Listener {
         if (event.isCancelled()
                 || !CombatCheck.checkCombat(event.getLocation())
                 || !physics().isEnableLegacyPotionPhysics()
-                || !(event.getEntity() instanceof ThrownPotion potion)) return;
+                || !(event.getEntity() instanceof ThrownPotion potion)
+                || potion.getItem().getType() != Material.SPLASH_POTION) return;
 
         ProjectileSource shooter = potion.getShooter();
         if (!(shooter instanceof Player player)) return;
 
-        double speed = potion.getVelocity().length();
-        Vector direction = player.getLocation().getDirection();
+        event.setCancelled(true);
 
-        Vector velocity = direction.multiply(speed / physics().getLegacyPotionVelocityReduction());
+        Tasks.run(() -> {
+            Location spawnLoc = player.getEyeLocation();
 
-        potion.setVelocity(velocity);
+            Vector direction = spawnLoc.getDirection().normalize();
+            direction.setY(direction.getY() + UPWARD_BIAS).normalize();
+            Vector velocity = direction.multiply(THROW_SPEED);
+
+            //Location actualSpawnLoc = spawnLoc.clone().add(direction.clone().multiply(0.5));
+
+            ThrownPotion newPotion = (ThrownPotion) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.POTION);
+            newPotion.setItem(potion.getItem());
+            newPotion.setVelocity(velocity);
+            newPotion.setHasLeftShooter(true);
+
+            // THIS LINE IS CRITICAL: Remove shooter immunity immediately
+            newPotion.setShooter(null);
+
+            // Optional extra measure to ensure immediate collision eligibility
+            newPotion.setTicksLived(5);
+        });
+
+
+//        potion.setHasLeftShooter(true);
+//        potion.setShooter(null);
+//        potion.setTicksLived(5);
+//
+//        // Get player's look direction
+//        Vector direction = player.getEyeLocation().getDirection().normalize();
+//
+//        // Add a slight upward bias to the direction (1.8-style adjustment)
+//        direction.setY(direction.getY() + UPWARD_BIAS).normalize();
+//
+//        // Compute new velocity vector
+//        Vector newVelocity = direction.multiply(THROW_SPEED);
+//
+//        // Set the projectile's velocity
+//        potion.setVelocity(newVelocity);
     }
 
     /**
@@ -115,16 +158,17 @@ public class LegacyPhysicsListener implements Listener {
         // Only run the task if the player is bow boosting
         if (!isBoosting) return;
 
-        Tasks.run(new ArrowTask(arrow));
+        Tasks.run(new ProjectileLeftShooterTask(arrow));
     }
 
     @RequiredArgsConstructor
-    private static class ArrowTask extends BukkitRunnable {
-        private final Arrow arrow;
+    private static class ProjectileLeftShooterTask extends BukkitRunnable {
+        private final Projectile projectile;
 
         @Override
         public void run() {
-            arrow.setHasLeftShooter(true);
+            Logs.log("left shooter 3 " + projectile.hasLeftShooter());
+            projectile.setHasLeftShooter(true);
         }
     }
 
