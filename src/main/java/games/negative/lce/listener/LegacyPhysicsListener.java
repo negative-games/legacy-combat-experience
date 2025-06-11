@@ -346,7 +346,7 @@ public class LegacyPhysicsListener implements Listener {
             
         boolean isCritical = player.getFallDistance() > 0.0F 
                 && !player.isOnGround() 
-                && !player.isInWater()
+                && !player.isInWater();
             
         // Check if we should cancel crit for sprinting players
         if (isCritical && physics().isCancelCritIfSprinting() && player.isSprinting()) {
