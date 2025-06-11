@@ -28,6 +28,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.Objects;
 
@@ -304,5 +306,79 @@ public class LegacyPhysicsListener implements Listener {
 
         inventory.setItemInOffHand(null);
         player.updateInventory();
+    }
+
+    /**
+     * Set axe damage to legacy 1.8 values
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onAxeDamage(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()
+                || !(event.getDamager() instanceof Player player)
+                || !CombatCheck.checkCombat(player)
+                || !physics().isOldschoolAxeDamage()) return;
+            
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (!item.getType().name().contains("_AXE")) return;
+        
+        // Set damage to 1.8 values
+        double damage = switch(item.getType()) {
+            case WOODEN_AXE -> 4.0; // 2 hearts
+            case STONE_AXE -> 5.0;  // 2.5 hearts
+            case IRON_AXE -> 6.0;   // 3 hearts
+            case GOLDEN_AXE -> 4.0; // 2 hearts
+            case DIAMOND_AXE -> 7.0; // 3.5 hearts
+            case NETHERITE_AXE -> 8.0; // 4 hearts
+            default -> event.getDamage();
+        };
+        
+        event.setDamage(damage);
+    }
+
+    /**
+     * Adjust critical hit damage
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onCriticalHit(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()
+                || !(event.getDamager() instanceof Player player)
+                || !CombatCheck.checkCombat(player)) return;
+            
+        boolean isCritical = player.getFallDistance() > 0.0F 
+                && !player.isOnGround() 
+                && !player.isInWater() 
+                && !player.hasPotionEffect(PotionEffectType.BLINDNESS);
+            
+        // Check if we should cancel crit for sprinting players
+        if (isCritical && physics().isCancelCritIfSprinting() && player.isSprinting()) {
+            isCritical = false;
+        }
+        
+        if (isCritical) {
+            event.setDamage(event.getDamage() * physics().getCriticalModifier());
+        }
+    }
+
+    /**
+     * Apply 1.8 sharpness damage calculations
+     */
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onSharpnessDamage(EntityDamageByEntityEvent event) {
+        if (event.isCancelled()
+                || !(event.getDamager() instanceof Player player)
+                || !CombatCheck.checkCombat(player)
+                || !physics().isOldSharpnessDamageBuff()) return;
+            
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item.getEnchantmentLevel(Enchantment.SHARPNESS) <= 0) return;
+        
+        // Get the sharpness level
+        int level = item.getEnchantmentLevel(Enchantment.SHARPNESS);
+        
+        // In 1.8, each level of sharpness adds 1.25 damage (modern is 0.5 + 0.5 * level)
+        double oldDamage = event.getDamage();
+        double newDamage = oldDamage - (0.5 + (0.5 * level)) + (1.25 * level);
+        
+        event.setDamage(newDamage);
     }
 }

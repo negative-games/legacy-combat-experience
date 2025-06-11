@@ -27,6 +27,31 @@ public class PhysicsConfig {
 
     @Comment({
             "",
+            "Whether or not to make axe damage what it was in 1.8."
+    })
+    private boolean oldschoolAxeDamage = true;
+
+    @Comment({
+            "",
+            "The damage modifier for critical hits."
+    })
+    private double criticalModifier = 1.5;
+
+    @Comment({
+            "",
+            "Whether or not players can deal crits while sprinting.",
+            "In newer versions, sprinting players cannot deal crits."
+    })
+    private boolean cancelCritIfSprinting = false;
+
+    @Comment({
+            "",
+            "Whether or not to make sharpness act the way it did in 1.8."
+    })
+    private boolean oldSharpnessDamageBuff = true;
+
+    @Comment({
+            "",
             "Whether or not to enable the custom bridging physics",
             "which increases speed when using Shift + Backwards"
     })
