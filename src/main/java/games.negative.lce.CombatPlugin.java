@@ -1,4 +1,4 @@
-package your.package;
+package  games.negative.lce;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
