@@ -61,6 +61,7 @@ public final class CombatPlugin extends AluminaPlugin {
         registerCommand(new CommandGiveBlockHittingSword());
         registerCommand(new CommandLCE());
         registerListener(new LegacyPhysicsListener());
+        registerListener(new PlayerJoinListener());
     }
 
     public void reload() {
