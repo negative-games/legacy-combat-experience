@@ -1,5 +1,9 @@
 # **Legacy Combat Experience (LCE) – Bring Back the 1.8 PvP Feel in 1.21+!**
 
+Dev Builds: https://ci.negative.games/job/legacy-combat-experience/
+
+Stable Releases: https://modrinth.com/plugin/lce
+##
 Do you miss the **fast, skill-based combat** of Minecraft 1.8? With **Legacy Combat Experience (LCE)**, you can **restore the classic PvP mechanics** while keeping your server up to date with **Minecraft 1.21+!** Designed for competitive play, minigames, and PvP servers, LCE removes unwanted modern mechanics and **reintroduces fan-favorite features** from the golden era of Minecraft combat.
 
 ## **🔹 Key Features:**
