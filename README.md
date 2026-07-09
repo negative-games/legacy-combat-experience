@@ -1,34 +1,111 @@
-# **Legacy Combat Experience (LCE) – Bring Back the 1.8 PvP Feel in 1.21+!**
+# Legacy Combat Experience
 
-Dev Builds: https://ci.negative.games/job/legacy-combat-experience/
+[![Modrinth](https://img.shields.io/modrinth/v/lce?logo=modrinth&label=Modrinth&color=00AF5C)](https://modrinth.com/plugin/lce)
+[![Modrinth downloads](https://img.shields.io/modrinth/dt/lce?logo=modrinth&label=Downloads&color=00AF5C)](https://modrinth.com/plugin/lce)
 
-Stable Releases: https://modrinth.com/plugin/lce
-##
-Do you miss the **fast, skill-based combat** of Minecraft 1.8? With **Legacy Combat Experience (LCE)**, you can **restore the classic PvP mechanics** while keeping your server up to date with **Minecraft 1.21+!** Designed for competitive play, minigames, and PvP servers, LCE removes unwanted modern mechanics and **reintroduces fan-favorite features** from the golden era of Minecraft combat.
+**Legacy Combat Experience (LCE)** brings classic Minecraft 1.8-style PvP behavior to modern Paper servers.
 
-## **🔹 Key Features:**
+LCE is built for PvP, practice, minigame, and competitive servers that want the speed and feel of legacy combat while staying on current Minecraft versions. The project is open source so server owners, developers, and community members can report issues, suggest improvements, and contribute fixes.
 
-✅ **No 1.9 Combat Particles & Sounds**
-- **Removes attack cooldown indicators** and the **sweeping edge effect**, ensuring a **cleaner** PvP experience.
+## Links
 
-✅ **Patched Bridging Speed**
-- **Fixes bridging inconsistencies**, allowing players to **speed bridge** without artificial slowdowns.
+- Stable releases: [Modrinth](https://modrinth.com/plugin/lce)
+- Dev builds: [Moonrise CI](https://ci.moonrise.gg/job/legacy-combat-experience/)
+- Issues and feature requests: use the GitHub issue templates
+- Contributing: see [CONTRIBUTING.md](CONTRIBUTING.md)
 
-✅ **Knockback Modifications**
-- **Adjust knockback values** to fine-tune PvP balance and recreate the feel of classic duels.
+## Supported Platform
 
-✅ **Projectile Physics Modifications**
-- Revert **arrows, snowballs, and other projectiles** to their **original 1.8 behavior**, ensuring **familiar aiming and velocity mechanics**.
+- Loader: Paper
+- Minecraft version: currently built against Paper `1.21.4`
+- Java: 21
 
-✅ **Added Bow Boosting**
-- Bring back the **beloved bow boost** feature, allowing skilled players to **rocket jump with well-placed shots**, just like in the old days!
+PacketEvents is required. PlaceholderAPI and WorldGuard are optional integrations.
 
-✅ **Fully Adjustable & Configurable**
-- Every feature can be **enabled, disabled, or customized** via an easy-to-use config file, making LCE **perfect for any server setup**.
+## Features
 
-## **⚔ Why Choose LCE?**
-- **Ideal for PvP servers, practice servers, and competitive gameplay**
-- **No client mods required**
-- **Lightweight, optimized, and easy to configure**
+- Block or remap modern combat sounds and particles
+- Tune knockback values by knockback cause
+- Restore legacy-style projectile interactions for snowballs, eggs, ender pearls, fishing rods, and more
+- Optional bow boosting and legacy potion physics
+- Optional bridging speed behavior for shift-backward movement
+- Configurable sword blocking damage reduction and old sharpness/axe damage behavior
+- World and WorldGuard region support for scoping legacy combat behavior
 
-**Recreate the high-speed PvP action of Minecraft 1.8 without downgrading your server!** Download **Legacy Combat Experience (LCE)** today and give your players the combat system they love! 🔥
+## Dependencies
+
+### Required
+
+- [PacketEvents](https://modrinth.com/plugin/packetevents)
+
+### Optional
+
+- [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/)
+- [WorldGuard](https://dev.bukkit.org/projects/worldguard)
+
+## Building
+
+Use Java 21.
+
+```bash
+./gradlew build
+```
+
+The shaded plugin jar is written to:
+
+```txt
+build/libs/
+```
+
+If the Gradle wrapper is not executable on your machine:
+
+```bash
+chmod +x ./gradlew
+```
+
+## Testing
+
+Run the unit test suite with:
+
+```bash
+./gradlew test
+```
+
+Pull requests should include tests for behavior changes when the code can be tested without a live server.
+
+## Commands
+
+```txt
+/legacycombatexperience
+/legacycombatexperience reload
+/legacycombatexperience sound <sound> [volume] [pitch]
+/legacycombatexperience knockback
+/legacycombatexperience knockback <x> <y> <z>
+/lce
+/lce reload
+/lce sound <sound> [volume] [pitch]
+/lce knockback
+/lce knockback <x> <y> <z>
+/giveblockhittingsword
+```
+
+## Permissions
+
+```txt
+lce.command
+combat.command.giveblockhittingsword
+```
+
+## Contributing
+
+Community contributions are welcome. The default branch is protected, so all changes should go through a pull request.
+
+Before opening a pull request:
+
+1. Create a branch from the latest default branch.
+2. Keep the change focused.
+3. Run `./gradlew test`.
+4. Update documentation when behavior, commands, permissions, or configuration changes.
+5. Fill out the pull request description with what changed and how it was tested.
+
+For more detail, see [CONTRIBUTING.md](CONTRIBUTING.md).
