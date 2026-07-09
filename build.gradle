@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id "io.github.goooler.shadow" version "8.1.7"
+    id "com.modrinth.minotaur" version "2.9.0"
 }
 
 def id = "LCE"
@@ -109,4 +110,27 @@ shadowJar {
 
     relocate "games.negative.alumina", "${group}.libs.alumina"
     //relocate "de.exlll.configlib", "${group}.libs.config"
+}
+
+def modrinthGameVersions = providers.environmentVariable("MODRINTH_GAME_VERSIONS")
+        .map { versions -> versions.split(",").collect { it.trim() }.findAll { !it.isEmpty() } }
+        .orElse(["1.21.4"])
+def modrinthLoaders = providers.environmentVariable("MODRINTH_LOADERS")
+        .map { loaders -> loaders.split(",").collect { it.trim() }.findAll { !it.isEmpty() } }
+        .orElse(["paper"])
+
+modrinth {
+    token.set(providers.environmentVariable("MODRINTH_TOKEN"))
+    projectId.set(providers.environmentVariable("MODRINTH_PROJECT_ID").orElse("legacy-combat-experience"))
+    versionNumber.set(providers.environmentVariable("MODRINTH_VERSION_NUMBER").orElse(version))
+    versionName.set(providers.environmentVariable("MODRINTH_VERSION_NAME").orElse("${id} ${version}"))
+    versionType.set(providers.environmentVariable("MODRINTH_VERSION_TYPE").orElse("release"))
+    uploadFile.set(tasks.shadowJar)
+    gameVersions.addAll(modrinthGameVersions)
+    loaders.addAll(modrinthLoaders)
+    changelog.set(providers.environmentVariable("MODRINTH_CHANGELOG").orElse("Automated release."))
+}
+
+tasks.named("modrinth") {
+    dependsOn(tasks.shadowJar)
 }
