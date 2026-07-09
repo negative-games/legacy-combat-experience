@@ -6,7 +6,7 @@ plugins {
 
 def id = "LCE"
 def group = 'games.negative.lce'
-def version = '0.3.0'
+def version = '0.3.1'
 
 repositories {
     mavenLocal()
