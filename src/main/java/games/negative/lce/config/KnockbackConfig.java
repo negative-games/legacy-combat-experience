@@ -9,6 +9,7 @@ import lombok.Getter;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,10 +37,10 @@ public class KnockbackConfig {
             "* PUSH | A generic push.",
             "* UNKNOWN | Knockback with an unknown cause."
     })
-    private Map<EntityKnockbackEvent.Cause, Vector> knockback = Map.of(
+    private Map<EntityKnockbackEvent.Cause, Vector> knockback = new HashMap<>(Map.of(
             EntityKnockbackEvent.Cause.ENTITY_ATTACK, new Vector(1, 1, 1),
             EntityKnockbackEvent.Cause.EXPLOSION, new Vector(1, 1, 1)
-    );
+    ));
 
     @Comment({
             "",
